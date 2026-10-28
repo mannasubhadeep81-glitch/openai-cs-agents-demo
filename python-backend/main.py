@@ -8,7 +8,7 @@ from agents import Runner
 from pydantic import BaseModel, Field
 
 from chatkit.server import StreamingResult
-from fastapi import Depends, FastAPI, Query, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 
@@ -107,17 +107,19 @@ async def chatkit_state_stream(
 @app.post("/personal-assistant/chat")
 async def personal_assistant_chat(payload: PersonalAssistantRequest) -> Dict[str, str]:
     """Run the tool-free personal assistant without changing the airline ChatKit flow."""
+    message = payload.message.strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="Message must not be blank.")
     try:
-        result = await Runner.run(personal_assistant, payload.message.strip())
+        result = await Runner.run(personal_assistant, message)
     except Exception as exc:
         # Avoid returning provider details, credentials, or internal exception text.
-        from fastapi import HTTPException
-
         raise HTTPException(
             status_code=503,
             detail="Assistant is temporarily unavailable. Check server configuration and logs.",
         ) from exc
-    return {"reply": result.final_output if isinstance(result.final_output, str) else str(result.final_output)}
+    reply = result.final_output
+    return {"reply": reply if isinstance(reply, str) else str(reply)}
 
 
 @app.get("/health")
