@@ -1,0 +1,33 @@
+name: Personal Assistant Checks
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python-backend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: python-backend/requirements.txt
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run personal assistant tests
+        run: python -m unittest discover -s tests -v
