@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
-  // Proxy /chat requests to the backend server
+  // Proxy browser requests to the Python backend without exposing backend secrets.
   async rewrites() {
     return [
       {
@@ -15,6 +15,10 @@ const nextConfig = {
       {
         source: "/chatkit/:path*",
         destination: "http://127.0.0.1:8000/chatkit/:path*",
+      },
+      {
+        source: "/personal-assistant/:path*",
+        destination: "http://127.0.0.1:8000/personal-assistant/:path*",
       },
     ];
   },
